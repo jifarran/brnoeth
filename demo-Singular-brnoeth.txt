@@ -1,0 +1,608 @@
+// SINGULAR DEMO : "brnoeth: A Singular library for AG codes" 
+
+// (1) INTRODUCTION TO SINGULAR : A Computer Algebra System for polynomial computations 
+
+// Singular homepage & download 
+// http://www.singular.uni-kl.de
+// Manual online 
+// http://www.singular.uni-kl.de/index.php/singular-manual.html
+// Singular online 
+// https://www.singular.uni-kl.de:8003/
+
+// Comments: introduced by double backslash 
+// Command lines: always ended by ";" 
+// Variables: declare type before using 
+// Booleans: work like in C/C++ 
+
+// this is to save the session (Input and Output) on a local file 
+monitor("session.txt","io");
+
+// declare an integer variable 
+int i=1;
+
+// list of existing variables 
+listvar();
+
+// i is defined if the answer is a positive integer 
+defined(i);
+
+// check the type of a variable 
+typeof(i);
+
+// remove a variable together with its value 
+kill i;
+
+// check that i is removed: answer is zero 
+defined(i);
+
+// Basic types: int (integer) / intvec (vector of integers) / intmat (matrix of integers) 
+
+// random integer between 3 and 100 
+int k = random(3, 100);
+k;
+
+// intvec by list of integers 
+intvec v=1,2,4,3;
+v;
+
+// intvec by a range 
+intvec w=1..5;
+w;
+
+// access to positions: index starts from 1 
+v[4];
+
+// matrix of integers: declare the dimensions and the entries 
+intmat A[2][3]=1,2,3,4,5,6;
+A;
+
+// a more pleasant display 
+print(A);
+
+// access to a specific entry of A 
+A[2,2];
+
+// declare an empty list 
+list L=list();
+L;
+
+// define the entries of L 
+L[1]=v;
+L[2]=w;
+L[3]=A;
+L[5]=1;
+
+// show the complete list L 
+L;
+
+// redefine an entry 
+L[5]=0;
+
+// check that L is updated 
+L;
+
+// nested indices: the third component of the first component 
+L[1][3];
+
+// the size of L 
+size(L);
+
+// which type is entry in position 5? 
+typeof(L[5]);
+
+// which type is entry in position 4? 
+typeof(L[4]);
+
+// define a list with the function "list" 
+list LL=list(w,5,list());
+
+// show LL 
+LL;
+
+// concatenate two lists 
+L+LL;
+
+// Rings: an example ... 
+ring r=(2,a),(x,y),dp;
+minpoly=a2+a+1;
+basering;
+
+// computations in the base (finite) field 
+a*a;
+
+// characteristic of the basering 
+char(basering);
+
+// number of variables of the basering 
+nvars(basering);
+
+// Important remark: only one ring can be active at a time 
+
+// clone a ring 
+def R=basering;
+
+// change the active ring (basering) 
+setring R;
+
+// objects inside a ring: numbers, polynomials, ideals, matrices, modules, etc. 
+
+number b=a2+1;
+b;
+
+poly f=y-x2;
+f;
+
+// objects inside a rings are local variables: only accessible when the ring is active 
+listvar();
+
+// other objects are global (int/intvec/string/etc.)
+// lists are local or global depending on their content 
+
+setring r;
+
+// objects of R are cloned in r because of the "def" statement 
+listvar();
+
+// another ring: check what is global now 
+ring s = 2,(x,y),lp;
+listvar();
+
+// f is not defined now in ring s 
+defined(f);
+
+// this is to obtain reduced standard bases 
+option(redSB);
+
+// compute a standard basis 
+ideal I=x2,y3+x;
+std(I);
+
+// the same again, but assign the result to I 
+I = std(I);
+I;
+
+// number of generators of I 
+ncols(I);
+
+// number of non-zero generators of I 
+size(I);
+
+// useful procedures: check the Manual 
+// deg, gcd/extgcd, division, factorize, resultant ... 
+// std, groebner, facstd, fglm, interred ...
+// degree (dim, codim, multiplicity), dim, vdim, kbase, mult, reduce, eliminate, quotient ... 
+// subst, lead, leadcoef, leadexp, leadmonom, diff, jacob, coef, coeffs ... 
+// matrix: det, transpose, concat ... 
+
+// import a library 
+LIB "general.lib";
+
+// with "general.lib" we can remove all the existing variables 
+killall();
+
+// check that everything is removed 
+listvar();
+
+// obtain help with: help lib/proc; 
+// remark: you should correctly configure you help browser with: system("--browser", <browser>);
+
+// (2) FINITE FIELDS AND EXTENSIONS 
+
+// factorize a cyclotomic polynomial over F_3 
+ring r=3,(x,y),dp;
+poly f=x27-x;
+factorize(f);
+
+// extend the base field to F_{27} 
+ring rr=(3,a),(x,y),dp;
+minpoly=a3-a+1;
+basering;
+
+// import f from r with the canonical embedding 
+poly f=imap(r,f);
+f;
+
+// factorize now over the extension field 
+factorize(f,1);
+
+// the Euclidean algorithm for (univariate) polynomials 
+gcd(f,x4-x);
+
+// the extended Euclidean algorithm 
+extgcd(f,x4-x);
+
+// further computations over finite fields 
+ideal I=x2+y2,x2-y2;
+I;
+
+// compute a standard basis (w.r.t. the graded lexico-graphical ordering dp) 
+ideal J=std(I);
+J;
+
+// for the next computations we need J to be a standard basis 
+
+// the Krull dimension 
+dim(J);
+
+// the dimension of R/J as a vector space (R is the basering) 
+vdim(J);
+
+// a vector basis of R/J 
+kbase(J);
+
+// the Samuel multiplicity 
+mult(J);
+
+// the Hilbert series 
+hilb(J);
+
+// the syzygies 
+syz(J);
+
+// primary decomposition of prime ideals: the primary ideals with their associated primes 
+LIB "primdec.lib";
+
+// the radical of the ideal J 
+radical(J);
+
+// fetch J into the ring r 
+setring r;
+ideal J=imap(rr,I);
+J=std(J);
+J;
+
+// algorithm of Gianni-Trager-Zacharias 
+primdecGTZ(J);
+
+// algorithm of Shimoyama-Yokoyama 
+primdecSY(J);
+
+// a harder example in characteristic zero 
+ring r0 = 0,(x,y,z),lp;
+poly p = z2+1;
+poly q = z3+2;
+ideal i = p*q^2,y-z2;
+list pr = primdecGTZ(i);
+pr;
+
+// a hard computation of standard basis over F_2 
+ring s=2,(x,y,z,t),lp;
+ideal I=x8+y7+z6,y5+z4+t3,x7+z6+t5,x4+y3+t2;
+
+// time control ... 
+timer=1;
+print("timer="+string(timer));
+ideal J=std(I);
+print("timer="+string(timer));
+
+// the result ... 
+J;
+
+// triangulation algorithms for zero-dimensional ideals (Lazard) 
+// they are used to solve systems of algebraic equations with finitely many solutions 
+// Input: std with respect to lp 
+// Output: list of triangular systems 
+
+LIB "triang.lib";
+
+triangL(J);
+
+// (3) HAMBURGER-NOETHER EXPANSIONS 
+
+killall();
+
+LIB "hnoether.lib";
+
+// local ring for computations (local ordering) 
+ring r = 2,(x,y),ds;
+
+// local equation at the origin 
+poly f = x10+x3y7+y9+y2;
+
+// list of the HN expansions of all the branches at the origin 
+list H=hnexpansion(f);
+H;
+
+// display a summary of the HN expansion 
+displayHNE(H);
+
+// parameterization of the (unique) branch 
+param(H[1]);
+
+// increase the exactness if necessary 
+param(extdevelop(H[1], 40));
+
+// an example with several branches 
+ring R = 0, (x,y), dp;
+list Hne=hnexpansion(x4-y6);
+displayHNE(Hne);
+
+// parameterization of the first branch 
+param(Hne[1]);
+
+// parameterization of the second branch 
+param(Hne[2]);
+
+// an example where a field extension is necessary for the HNE 
+list L=hnexpansion((x4-y6)*(y2+x4));
+show(L);
+
+// define the local ring where the computations are stored 
+def HNring = L[1];
+setring HNring;
+basering;
+
+// show the computations 
+displayHNE(hne);
+
+// (4) LIBRARY "brnoeth": Brill-Noether algorithm, Weierstrass semigroups, and AG codes 
+
+killall();
+
+LIB "brnoeth.lib";
+
+// affine global ring to define the curve 
+ring s=2,(x,y),lp;
+
+// Adjunction Divisor: singular points with their delta invariants, after the resolution of all the singularities 
+list C=Adj_div(y9+y8+xy6+x2y3+y2+x3);
+C;
+
+// define the affine ring 
+def aff_R=C[1][1];
+
+// data stored in aff_R 
+setring aff_R;
+listvar(aff_R);
+
+// the affine equation of the curve 
+CHI;
+
+// the ideal of the affine singular locus 
+Aff_SLocus;
+
+// affine singular points (numbered from 1 to 3) 
+Aff_SPoints;
+
+// singular point(s) at infinity: (1:0:0) with number 4 
+Inf_Points[1];
+
+// non-singular points at infinity (none, in this case) 
+Inf_Points[2];
+
+// projective ring (it will be necessary later, to define rational functions) 
+def proj_R=C[1][2];
+setring proj_R;
+basering; 
+
+// projective equation of the curve 
+CHI;
+
+// the degree of the curve 
+C[2][1];
+
+// the genus of the curve 
+C[2][2];
+
+// list of computed (closed) places of the curve 
+C[3];
+
+// the adjunction divisor 
+C[4];
+
+// local rings for points over extensions, where to find local data 
+C[5];
+
+// for example, let us see the places (=branches) of degree 2 (over F_4) 
+def S(2)=C[5][2][1];
+setring S(2);
+listvar();
+
+// base points of the places: (1:a:1) 
+POINTS;
+
+// local equations (the base point is translated to the origin) 
+LOC_EQS;
+
+// HNEs of the branches 
+BRANCHES;
+
+// parameterizations of the branches and their exactness 
+PARAMETRIZATIONS;
+
+// non-singular points of given degrees 
+C = NSplaces(1..4, C);
+
+// places are updated: note that we have now 2 points of degree 3 and 3 points of degree 4 
+C[3];
+
+// Brill-Noether algorithm: to compute a vector basis for a Riemann-Roch space L(G) 
+// define a rational divisor G with the first and third places of C 
+intvec G=4,0,4;
+
+// we need to move to the projective ring 
+setring proj_R;
+
+// the Brill-Noether algorithm 
+list LG=BrillNoether(G,C);
+
+// the vector basis: each rational function is given by a couple numerator / denominator 
+LG;
+
+// computing the Weierstrass semigroup at the infinity point (number 4), up to m=6 (note that the genus is g=3) 
+list WS=Weierstrass(4,6,C);
+
+// the first list is the numerical semigroup, and the second one are the associated functions 
+WS;
+
+// extend the curve to F_16 (this is intended to use rational points over extensions) 
+list C4 = extcurve(4, C);
+C4;
+
+// go to the ring where the points over F_{16} are 
+def f16 = C4[1][5];
+setring f16;
+listvar();
+
+// the rational points over F_{16} 
+POINTS;
+
+// Note that the number of "rational points" over F_{16} is computed in C4[2][3] 
+
+// Example of AG code: the typical code over the Klein quartic 
+setring s;
+poly f=x3y+y3+x;
+
+// first compute "the curve" 
+list KLEIN=Adj_div(f);
+KLEIN;
+
+// define the affine ring 
+def r=KLEIN[1][1];
+setring r;
+listvar();
+
+// the points at infinity (singular and non-singular) 
+Inf_Points;
+
+// the affine singular locus (no singular point) 
+Aff_SLocus;
+
+// degree of the curve = 4 (quartic) 
+KLEIN[2][1];
+
+// genus of the Klein quartic 
+KLEIN[2][2];
+
+// define the projective ring and see the projective equation 
+def R=KLEIN[1][2];
+setring R;
+CHI;
+
+// the adjunction divisor (sometimes called the "conductor") 
+intvec ConductorK=KLEIN[4];
+ConductorK;
+
+// the list of places 
+list PlacesK=KLEIN[3];
+PlacesK;
+
+// "local ring" for places of degree = 1
+def S(1)=KLEIN[5][1][1];
+setring S(1);
+listvar();
+
+// compute places up to degree 3 
+setring r;
+KLEIN=NSplaces(1..3,KLEIN);
+KLEIN;
+
+// check that we have few points of degree 1 (rational over F_2) 
+// thus, for coding purposes we have to extend the base field, to get "many" rational points 
+
+// update the list of places 
+PlacesK=KLEIN[3];
+PlacesK;
+
+// check now the closed points of degree 1, 2 and 3 
+Aff_Points(1);
+
+Aff_Points(2);
+
+Aff_Points(3);
+
+// Klein quartic over F_8 
+KLEIN=extcurve(3,KLEIN);
+KLEIN;
+
+// Input: coefficients of the divisor G (in this case, of degree 14) 
+intvec G=6,0,0,4;
+
+// compute the AG code L(G) by evaluating at all the rational points over $F_8$ not in the support of G 
+intvec D=2..24;
+
+// ring $F_8[x,y,z]$ 
+def ER=KLEIN[1][4];
+setring ER;
+matrix CL=AGcode_L(G,D,KLEIN);
+print(CL);
+
+// dimension of the code 
+nrows(CL);
+
+// length of the code 
+ncols(CL);
+
+// dual code (Omega code) 
+matrix CO=AGcode_Omega(G,D,KLEIN);
+print(CO);
+
+// dimension 
+nrows(CO);
+
+// length 
+ncols(CO);
+
+// directly by computing the dual code of CL 
+dual_code(CL)==CO;
+
+// Decoding (preprocessing of the algorithm of Skorobogatov and Vladut): we need a divisor F of degree $\geq 6$ 
+intvec F=6,0,0;
+list K=prepSV(G,D,F,KLEIN);
+K;
+
+// estimated correction capacity 
+K[size(K)][1];
+
+// Coding information of dimension 11 into a codeword of length 23 
+matrix word[1][11];
+word = 1,1,1,1,1,1,1,1,1,1,1;
+print(word);
+
+def c=word*CO;
+print(c);
+
+// error correction: we add 3 errors 
+matrix e[1][23];
+e[1,1]=1;
+e[1,10]=a;
+e[1,12]=1+a;
+print(e);
+
+// we receive y instead of c 
+def y=c+e;
+print(y);
+
+// decode 
+def x=decodeSV(y,K);
+print(x);
+
+// check the emitted codeword 
+x==c;
+
+// obtain the error vector 
+print(x-y);
+
+// can we correct 4 errors? 
+y[1,2]=y[1,2]+1;
+def x=decodeSV(y,K);
+x==c;
+
+// and 5 errors? 
+y[1,3]=0;
+def x=decodeSV(y,K);
+x==c;
+
+// with 6 errors we fail! 
+y[1,4]=y[1,4]+1;
+decodeSV(y,K);
+
+// Final example: Weierstrass semigroup of the Suzuki curve 
+setring s;
+list SUZUKI=Adj_div(x10+x3+y8+y);
+def RR=SUZUKI[1][2];
+setring RR;
+list WSS = Weierstrass(1,28,SUZUKI);
+WSS;
+
+$
